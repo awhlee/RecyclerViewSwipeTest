@@ -98,7 +98,7 @@ public class MainActivityFragment extends Fragment {
 
                     if (dX > 0) {
                         boolean isPrimaryAction = true;
-                        if (dX >= (itemView.getRight() / 2)) {
+                        if (Math.abs(dX) >= Math.abs((itemView.getRight() / 2))) {
                             // If we go over half way, then the secondary action kicks in...
                             isPrimaryAction = false;
                         }
@@ -126,9 +126,23 @@ public class MainActivityFragment extends Fragment {
                                 (float)itemView.getBottom() - width);
                         c.drawBitmap(icon, null, icon_dest, mPaint);
                     } else {
+                        boolean isPrimaryAction = true;
+                        if (Math.abs(dX) >= Math.abs((itemView.getRight() / 2))) {
+                            // If we go over half way, then the secondary action kicks in...
+                            isPrimaryAction = false;
+                        }
+
                         // The item is being swiped to the left
-                        // Draw the background with the exposed rect.
-                        mPaint.setColor(Color.parseColor("#D32F2F"));
+                        // Color the background up to where the row has been swiped indicated
+                        // by dX
+                        int iconId;
+                        if (isPrimaryAction) {
+                            mPaint.setColor(Color.parseColor("#D32F2F"));
+                            iconId = R.drawable.ic_event_white_24dp;
+                        } else {
+                            mPaint.setColor(Color.parseColor("#4A90E2"));
+                            iconId = R.drawable.sidebar_snoozed;
+                        }
                         RectF background = new RectF((float)itemView.getRight() + dX,
                                 (float)itemView.getTop(),
                                 (float)itemView.getRight(),
@@ -136,8 +150,7 @@ public class MainActivityFragment extends Fragment {
                         c.drawRect(background, mPaint);
 
                         // Now draw the icon
-                        icon = BitmapFactory.decodeResource(getResources(),
-                                R.drawable.ic_event_white_24dp);
+                        icon = BitmapFactory.decodeResource(getResources(), iconId);
                         RectF icon_dest = new RectF((float)itemView.getRight() - 2 * width,
                                 (float)itemView.getTop() + width,
                                 (float)itemView.getRight() - width,
