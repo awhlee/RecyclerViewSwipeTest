@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,8 +27,6 @@ public class MainActivityFragment extends Fragment {
     private CustomAdapter mAdapter;
     private Paint mPaint = new Paint();
 
-    private static float sFirstSwipeThreshold = .3f;
-    private static float sSwipeThreshold = .6f;
 
     public MainActivityFragment() {
         mItems.add("Roland");
@@ -75,6 +74,7 @@ public class MainActivityFragment extends Fragment {
                 int position = viewHolder.getAdapterPosition();
 
                 // Could do something specific depending on the direction?
+                // i.e Archive vs. Swipe?
 //                if (direction == ItemTouchHelper.LEFT) {
                     mAdapter.removeItem(position);
 //                }
@@ -84,23 +84,42 @@ public class MainActivityFragment extends Fragment {
             public void onChildDraw(Canvas c, RecyclerView recyclerView,
                     RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState,
                     boolean isCurrentlyActive) {
+                Log.i("SampleApp", "dX: " + dX + " dY: " + dY);
                 Bitmap icon;
                 if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
                     View itemView = viewHolder.itemView;
                     float height = (float)itemView.getBottom() - (float)itemView.getTop();
                     float width = height / 3;
+
+                    Log.i("SampleApp", "itemView.getTop(): " + itemView.getTop());
+                    Log.i("SampleApp", "itemView.getBottom(): " + itemView.getBottom());
+                    Log.i("SampleApp", "itemView.getLeft(): " + itemView.getLeft());
+                    Log.i("SampleApp", "itemView.getRight(): " + itemView.getRight());
+
                     if (dX > 0) {
+                        boolean isPrimaryAction = true;
+                        if (dX >= (itemView.getRight() / 2)) {
+                            // If we go over half way, then the secondary action kicks in...
+                            isPrimaryAction = false;
+                        }
+
                         // The item is being swiped to the right
                         // Color the background up to where the row has been swiped indicated
                         // by dX
-                        mPaint.setColor(Color.parseColor("#388E3C"));
+                        int iconId;
+                        if (isPrimaryAction) {
+                            mPaint.setColor(Color.parseColor("#388E3C"));
+                            iconId = R.drawable.ic_event_white_24dp;
+                        } else {
+                            mPaint.setColor(Color.parseColor("#4A90E2"));
+                            iconId = R.drawable.sidebar_snoozed;
+                        }
                         RectF background = new RectF((float)itemView.getLeft(),
                                 (float) itemView.getTop(), dX, (float) itemView.getBottom());
                         c.drawRect(background, mPaint);
 
                         // Now draw the icon
-                        icon = BitmapFactory.decodeResource(getResources(),
-                                R.drawable.ic_event_white_24dp);
+                        icon = BitmapFactory.decodeResource(getResources(), iconId);
                         RectF icon_dest = new RectF((float)itemView.getLeft() + width,
                                 (float)itemView.getTop() + width,
                                 (float)itemView.getLeft() + 2 * width,
@@ -131,7 +150,7 @@ public class MainActivityFragment extends Fragment {
             }
 
             @Override
-            public float getSwipeVelocityThreshold (float defaultValue) {
+            public float getSwipeVelocityThreshold(float defaultValue) {
                 return defaultValue * 10;
             }
 
